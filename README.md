@@ -1,3 +1,5 @@
+##⚠️ This project was made 100% by AI, I'm testing how far AI can go for a real solution ⚠️
+
 # Code Performance Time Machine 🚀
 
 Uma ferramenta que analisa a evolução de performance de repositórios Git ao longo do tempo, identificando degradações e fornecendo insights com IA.
