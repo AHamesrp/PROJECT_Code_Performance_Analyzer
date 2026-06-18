@@ -278,8 +278,5 @@ MIT License - veja LICENSE.md para detalhes
 
 ## Contato 📧
 
-Arthur - [@seu-github](https://github.com/seu-usuario)
+Arthur - [@AHamesrp](https://github.com/AHamesrp)
 
----
-
-**Desenvolvido com ❤️ e Python**
