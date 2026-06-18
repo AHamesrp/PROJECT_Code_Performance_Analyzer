@@ -1,4 +1,4 @@
-##⚠️ This project was made 100% by AI, I'm testing how far AI can go for a real solution ⚠️
+## ⚠️This project was made 100% by AI, I'm testing how far AI can go for a real solution⚠️
 
 # Code Performance Time Machine 🚀
 
