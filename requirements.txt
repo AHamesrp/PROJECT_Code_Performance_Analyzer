@@ -1,0 +1,15 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gitpython==3.1.40
+radon==6.0.1
+sqlalchemy==2.0.51
+psycopg2-binary==2.9.12
+python-dotenv==1.0.0
+pydantic==2.13.4
+pydantic-settings==2.1.0
+anthropic==0.7.0
+requests==2.31.0
+numpy==2.4.6
+aiofiles==23.2.1
+pytest==7.4.3
+httpx==0.25.2
