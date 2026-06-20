@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## ⚠️This project was made 100% by AI, I'm testing how far AI can go⚠️
 
 # Code Performance Time Machine 🚀
@@ -282,3 +283,7 @@ MIT License - veja LICENSE.md para detalhes
 
 Arthur - [@AHamesrp](https://github.com/AHamesrp)
 
+=======
+venv/Scripts/Activate.ps1
+deactivate
+>>>>>>> dev

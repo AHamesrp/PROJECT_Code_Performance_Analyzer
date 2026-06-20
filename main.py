@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+from pathlib import Path
 import logging
 import sys
 
@@ -32,6 +35,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Servir frontend estático
+static_dir = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
@@ -47,17 +54,8 @@ app.include_router(analysis.router)
 
 @app.get("/")
 async def root():
-    """Endpoint raiz"""
-    return {
-        "message": "Code Performance Time Machine API",
-        "version": settings.API_VERSION,
-        "endpoints": {
-            "analyze": "/api/v1/analyze",
-            "analyze_detailed": "/api/v1/analyze/detailed",
-            "health": "/api/v1/health",
-            "docs": "/docs"
-        }
-    }
+    """Serve o frontend simples"""
+    return FileResponse(Path(__file__).resolve().parent / "static" / "index.html")
 
 
 @app.get("/docs-redirect")

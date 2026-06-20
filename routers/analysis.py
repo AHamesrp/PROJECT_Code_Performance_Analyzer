@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
 from typing import List
 import logging
 
@@ -11,16 +10,17 @@ from models.schemas import (
     CommitMetricResponse,
     PerformanceReportResponse
 )
-from models.database import Repository, CommitMetric, PerformanceAnalysis
 from services.git_analyzer import GitAnalyzer
 from services.metrics_calculator import MetricsCalculator
 from services.ai_analyzer import AIAnalyzer
+from services.repo_manager import RepoManager
 from config import settings
 
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 logger = logging.getLogger(__name__)
 
 # Instâncias globais
+repo_manager = RepoManager()
 git_analyzer = GitAnalyzer()
 ai_analyzer = AIAnalyzer(settings.ANTHROPIC_API_KEY)
 
@@ -29,7 +29,6 @@ ai_analyzer = AIAnalyzer(settings.ANTHROPIC_API_KEY)
 async def analyze_repository(
     request: RepositoryAnalysisRequest,
     background_tasks: BackgroundTasks,
-    db: Session = None
 ):
     """
     Analisa um repositório GitHub e extrai métricas de performance
@@ -46,12 +45,16 @@ async def analyze_repository(
     try:
         logger.info(f"Iniciando análise de {request.url}")
         
-        # Clone do repositório
-        repo = git_analyzer.clone_repository(request.url)
-        
+        # Valida URL
+        if not repo_manager.validate_git_url(request.url):
+            raise HTTPException(status_code=400, detail="URL de repositório inválida")
+
+        # Clone ou atualiza o repositório
+        repo = repo_manager.clone_or_update(request.url)
+
         # Extrai informações do repositório
         repo_info = git_analyzer.get_repository_info(repo)
-        
+
         # Get commits
         limit = None if request.analyze_all_history else 50
         commits_data = git_analyzer.get_commits_with_files(repo, limit=limit)
@@ -63,6 +66,13 @@ async def analyze_repository(
         for commit in commits_data:
             # Calcula complexidade do repositório naquele ponto
             try:
+                # Faz checkout do commit para calcular métricas no estado daquele commit
+                try:
+                    repo.git.checkout(commit.get("full_sha") or commit.get("sha"))
+                except Exception:
+                    # Tenta com SHA curto se necessário
+                    repo.git.checkout(commit.get("sha"))
+
                 complexity, _ = MetricsCalculator.calculate_complexity(repo_path)
             except:
                 complexity = 0.0
@@ -96,7 +106,7 @@ async def analyze_repository(
         )
         
         # Cleanup em background
-        background_tasks.add_task(git_analyzer.cleanup, repo_path)
+        background_tasks.add_task(repo_manager.cleanup, repo)
         
         logger.info(f"Análise concluída: {len(commits_with_metrics)} commits processados")
         
@@ -128,11 +138,15 @@ async def analyze_detailed(
     try:
         logger.info(f"Iniciando análise detalhada de {request.url}")
         
-        # Clone
-        repo = git_analyzer.clone_repository(request.url)
+        # Valida URL
+        if not repo_manager.validate_git_url(request.url):
+            raise HTTPException(status_code=400, detail="URL de repositório inválida")
+
+        # Clone ou atualiza
+        repo = repo_manager.clone_or_update(request.url)
         repo_info = git_analyzer.get_repository_info(repo)
         repo_path = str(repo.working_dir)
-        
+
         # Commits
         limit = None if request.analyze_all_history else 50
         commits_data = git_analyzer.get_commits_with_files(repo, limit=limit)
@@ -140,6 +154,12 @@ async def analyze_detailed(
         # Calcula complexidade
         for commit in commits_data:
             try:
+                # Faz checkout do commit para calcular métricas daquele ponto no tempo
+                try:
+                    repo.git.checkout(commit.get("full_sha") or commit.get("sha"))
+                except Exception:
+                    repo.git.checkout(commit.get("sha"))
+
                 complexity, _ = MetricsCalculator.calculate_complexity(repo_path)
                 commit["complexity"] = complexity
             except:
@@ -175,7 +195,7 @@ async def analyze_detailed(
         )
         
         # Cleanup
-        background_tasks.add_task(git_analyzer.cleanup, repo_path)
+        background_tasks.add_task(repo_manager.cleanup, repo)
         
         return response
     
