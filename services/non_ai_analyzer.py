@@ -284,6 +284,17 @@ class NonAIAnalyzer:
         return churn_issues
 
     @staticmethod
+    def detect_degradations(commits: List[Dict]) -> List[DegradationPoint]:
+        """
+        Retorna todas as degradações detectadas por heurísticas determinísticas.
+        """
+        spikes = NonAIAnalyzer.detect_complexity_spikes(commits)
+        gradual = NonAIAnalyzer.detect_gradual_decline(commits)
+        explosions = NonAIAnalyzer.detect_file_explosion(commits)
+        churn = NonAIAnalyzer.detect_code_churn(commits)
+        return spikes + gradual + explosions + churn
+
+    @staticmethod
     def calculate_health_score(commits: List[Dict]) -> RepositoryHealth:
         """
         Calcula SCORE DE SAÚDE do repositório (0-100)
