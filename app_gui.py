@@ -23,7 +23,7 @@ class AnalyzerApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Code Performance Analyzer")
-        self.geometry("820x700")
+        self.geometry("1600x850")
         self.resizable(False, False)
 
         self.repo_manager = RepoManager()
@@ -168,14 +168,10 @@ class AnalyzerApp(tk.Tk):
 
         commit_lines = []
         for commit in data.get('commits', [])[:12]:
+            committed_date = commit.get('committed_date')
+            committed_date_str = committed_date.strftime('%Y-%m-%d %H:%M:%S') if hasattr(committed_date, 'strftime') else str(committed_date)
             commit_lines.append(
-                f"SHA: {commit.get('sha')}\n"
-                f"Mensagem: {commit.get('message')}\n"
-                f"Autor: {commit.get('author')}\n"
-                f"Complexidade: {commit.get('complexity', 0):.2f}\n"
-                f"Linhas alteradas: +{commit.get('lines_added')}/-{commit.get('lines_removed')}\n"
-                f"Arquivos modificados: {commit.get('files_changed')}\n"
-                "────────────────────────────────────────\n"
+                f"{committed_date_str} | {commit.get('author')} | +{commit.get('lines_added')}/-{commit.get('lines_removed')} | {commit.get('message')}\n"
             )
         self.commits_text.config(state="normal")
         self.commits_text.insert(tk.END, "".join(commit_lines))
