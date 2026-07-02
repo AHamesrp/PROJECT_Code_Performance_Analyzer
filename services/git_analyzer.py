@@ -48,22 +48,11 @@ class GitAnalyzer:
             
             for idx, commit in enumerate(commits):
                 try:
-                    # Arquivos modificados
-                    files_changed = 0
-                    lines_added = 0
-                    lines_removed = 0
-                    
-                    if commit.parents:
-                        parent = commit.parents[0]
-                        diff = parent.diff(commit)
-                        
-                        for item in diff:
-                            files_changed += 1
-                            # Estatísticas de diff
-                            if item.diff:
-                                diff_text = item.diff.decode('utf-8', errors='ignore')
-                                lines_added += diff_text.count('\n+')
-                                lines_removed += diff_text.count('\n-')
+                    stats = commit.stats
+                    total = stats.total if stats else {}
+                    files_changed = len(stats.files) if stats and isinstance(stats.files, dict) else 0
+                    lines_added = total.get('insertions', 0)
+                    lines_removed = total.get('deletions', 0)
                     
                     commit_data = {
                         "sha": commit.hexsha[:8],  # SHA curto

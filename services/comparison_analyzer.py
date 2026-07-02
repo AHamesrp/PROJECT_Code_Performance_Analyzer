@@ -40,9 +40,9 @@ class AnalysisComparator:
             results["methods"]["statistical"] = AnalysisComparator._statistical_analysis(commits)
 
         # MÉTODO 2: Análise com IA
-        if use_ai and settings.ANTHROPIC_API_KEY:
+        if use_ai and settings.GROQ_API_KEY:
             print("🤖 Executando análise com IA...")
-            ai_analyzer = AIAnalyzer(settings.ANTHROPIC_API_KEY)
+            ai_analyzer = AIAnalyzer(settings.GROQ_API_KEY)
             results["methods"]["ai"] = AnalysisComparator._ai_analysis(
                 commits,
                 repo_info,
@@ -112,7 +112,7 @@ class AnalysisComparator:
             analysis = ai_analyzer.analyze_performance_degradation(commits, repo_info)
 
             return {
-                "method": "AI Analysis (Claude)",
+                "method": "AI Analysis (Groq)",
                 "analysis_text": analysis.get("analysis", ""),
                 "degradation_points": analysis.get("degradation_points", []),
                 "total_degradations": len(analysis.get("degradation_points", [])),
@@ -192,7 +192,7 @@ class AnalysisComparator:
         if "ai" in results["methods"]:
             ai = results["methods"]["ai"]
             print("\n" + "-"*80)
-            print("🤖 MÉTODO 2: ANÁLISE COM IA (CLAUDE)")
+            print("🤖 MÉTODO 2: ANÁLISE COM IA (GROQ)")
             print("-"*80)
             print(f"Degradações encontradas: {ai.get('total_degradations', 0)}")
             print(f"\nAnálise IA:")

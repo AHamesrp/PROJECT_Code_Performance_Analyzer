@@ -375,6 +375,15 @@ class NonAIAnalyzer:
         all_degradations.sort(key=lambda x: x.severity_score, reverse=True)
 
         # Monta relatório
+        average = trend_info.get('average', 0)
+        std_dev = trend_info.get('std_dev', 0)
+        min_value = trend_info.get('min', 0)
+        max_value = trend_info.get('max', 0)
+        coefficient_of_variation = trend_info.get('coefficient_of_variation', 0)
+        trend_slope = trend_info.get('trend_slope', 0)
+        trend_name = trend_info.get('trend', 'unknown')
+        insufficient_data = trend_info.get('status') == 'insufficient_data'
+
         report = f"""
 ═══════════════════════════════════════════════════════════════
 RELATÓRIO DE ANÁLISE DE PERFORMANCE - {repo_info.get('name', 'Unknown')}
@@ -388,23 +397,29 @@ Total de Commits Analisados: {len(commits)}
 Issues Críticos: {health.critical_issues}
 Avisos: {health.warnings}
 
+"""
+
+        if insufficient_data:
+            report += "Dados insuficientes para análise de tendência. Mais commits são necessários para gerar uma visão estatística completa.\n"
+        else:
+            report += f"""
 📈 ANÁLISE DE TENDÊNCIA
 ───────────────────────────────────────────────────────────────
-Complexidade Média: {trend_info['average']:.2f}
-Desvio Padrão: {trend_info['std_dev']:.2f}
-Range: {trend_info['min']:.2f} - {trend_info['max']:.2f}
-Coeficiente de Variação: {trend_info['coefficient_of_variation']:.2f}
-Inclinação (Slope): {trend_info['trend_slope']:.4f}
+Complexidade Média: {average:.2f}
+Desvio Padrão: {std_dev:.2f}
+Range: {min_value:.2f} - {max_value:.2f}
+Coeficiente de Variação: {coefficient_of_variation:.2f}
+Inclinação (Slope): {trend_slope:.4f}
 
 Interpretação:
 """
 
-        if trend_info['trend'] == 'improving':
-            report += "✅ O código está ficando mais simples e fácil de manter.\n"
-        elif trend_info['trend'] == 'declining':
-            report += "⚠️ Atenção: A complexidade está aumentando. Refatoração recomendada.\n"
-        else:
-            report += "➡️ A complexidade permanece estável.\n"
+            if trend_name == 'improving':
+                report += "✅ O código está ficando mais simples e fácil de manter.\n"
+            elif trend_name == 'declining':
+                report += "⚠️ Atenção: A complexidade está aumentando. Refatoração recomendada.\n"
+            else:
+                report += "➡️ A complexidade permanece estável.\n"
 
         if all_degradations:
             report += f"""
@@ -431,7 +446,7 @@ Interpretação:
             report += "\n   - Use extract method para reduzir linhas de funções longas"
             report += "\n   - Divida arquivos grandes em módulos menores"
 
-        if trend_info['trend'] == 'declining':
+        if trend_name == 'declining' and not insufficient_data:
             report += "\n2. TENDÊNCIA: Estabeleça code review para novas mudanças"
             report += "\n   - Limite complexity por função (máx ~10-15)"
 

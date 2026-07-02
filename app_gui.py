@@ -23,12 +23,43 @@ class AnalyzerApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Code Performance Analyzer")
-        self.geometry("1600x850")
-        self.resizable(False, False)
+        self.geometry("900x650")
+        self.minsize(800, 600)
+        self.resizable(True, True)
+
+        self.tk_setPalette(
+            background="#1e1e1e",
+            foreground="#f5f5f5",
+            activeBackground="#2d2d2d",
+            activeForeground="#ffffff",
+            selectBackground="#3b82f6",
+            selectForeground="#ffffff",
+        )
+
+        self.style = ttk.Style(self)
+        try:
+            self.style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        self.style.configure("TFrame", background="#1e1e1e")
+        self.style.configure("TLabel", background="#1e1e1e", foreground="#f5f5f5")
+        self.style.configure("TEntry", fieldbackground="#2b2b2b", foreground="#f5f5f5", background="#2b2b2b")
+        self.style.configure("TCheckbutton", background="#1e1e1e", foreground="#f5f5f5")
+        self.style.configure("TButton", background="#2b2b2b", foreground="#f5f5f5")
+        self.style.map(
+            "TButton",
+            background=[("active", "#3a3a3a"), ("pressed", "#4a4a4a")],
+            foreground=[("active", "#ffffff")],
+        )
+        self.style.configure("TLabelframe", background="#1e1e1e", foreground="#f5f5f5")
+        self.style.configure("TLabelframe.Label", background="#1e1e1e", foreground="#f5f5f5")
+        self.style.configure("Horizontal.TScrollbar", background="#2b2b2b", troughcolor="#1e1e1e")
+        self.style.configure("Vertical.TScrollbar", background="#2b2b2b", troughcolor="#1e1e1e")
 
         self.repo_manager = RepoManager()
         self.git_analyzer = GitAnalyzer()
-        self.ai_analyzer = AIAnalyzer(settings.ANTHROPIC_API_KEY)
+        self.ai_analyzer = AIAnalyzer(settings.GROQ_API_KEY)
 
         self._build_ui()
 
@@ -43,7 +74,6 @@ class AnalyzerApp(tk.Tk):
             frame,
             text="Digite a URL do repositório Git e clique em Start para rodar a análise.",
             wraplength=780,
-            foreground="#444"
         )
         description.pack(anchor="w", pady=(4, 12))
 
@@ -53,7 +83,7 @@ class AnalyzerApp(tk.Tk):
         ttk.Label(form, text="URL do repositório:").grid(row=0, column=0, sticky="w")
         self.url_entry = ttk.Entry(form, width=90)
         self.url_entry.grid(row=1, column=0, sticky="ew", pady=(4, 8))
-        self.url_entry.insert(0, "https://github.com/AHamesrp/academia_fabiano_lp.git")
+        self.url_entry.insert(0, "")
 
         options = ttk.Frame(form)
         options.grid(row=2, column=0, sticky="w")
@@ -64,19 +94,22 @@ class AnalyzerApp(tk.Tk):
         self.start_button = ttk.Button(options, text="Start", command=self.on_start)
         self.start_button.pack(side="left", padx=(14, 0))
 
-        self.status_label = ttk.Label(frame, text="Pronto para iniciar a análise.", foreground="#1155cc")
+        self.status_label = ttk.Label(frame, text="Pronto para iniciar a análise.")
         self.status_label.pack(anchor="w", pady=(12, 0))
 
         self.results_frame = ttk.LabelFrame(frame, text="Results", padding=12)
         self.results_frame.pack(fill="both", expand=True, pady=(16, 0))
 
         self.summary_text = scrolledtext.ScrolledText(self.results_frame, height=10, wrap="word", state="disabled")
+        self.summary_text.configure(bg="#1f1f1f", fg="#f5f5f5", insertbackground="#f5f5f5")
         self.summary_text.pack(fill="both", expand=False, pady=(0, 10))
 
         self.commits_text = scrolledtext.ScrolledText(self.results_frame, height=12, wrap="word", state="disabled")
+        self.commits_text.configure(bg="#1f1f1f", fg="#f5f5f5", insertbackground="#f5f5f5")
         self.commits_text.pack(fill="both", expand=True, pady=(0, 10))
 
         self.raw_text = scrolledtext.ScrolledText(self.results_frame, height=12, wrap="word", state="disabled")
+        self.raw_text.configure(bg="#1f1f1f", fg="#f5f5f5", insertbackground="#f5f5f5")
         self.raw_text.pack(fill="both", expand=True)
 
     def on_start(self):
@@ -86,7 +119,7 @@ class AnalyzerApp(tk.Tk):
             return
 
         self.start_button.config(state="disabled")
-        self.status_label.config(text="Executando análise...", foreground="#1f4e79")
+        self.status_label.config(text="Executando análise...")
         self.clear_results()
 
         thread = threading.Thread(target=self.run_analysis, args=(url, self.detailed_var.get()), daemon=True)
@@ -159,8 +192,8 @@ class AnalyzerApp(tk.Tk):
             f"Status: {data.get('analysis_status')}\n"
             f"Degradações identificadas: {data.get('degradations_found')}\n"
         )
-        if data.get('ai_analysis'):
-            summary += f"AI Analysis: disponível\n"
+        # if data.get('ai_analysis'):
+        #     summary += f"AI Analysis: disponível\n"
 
         self.summary_text.config(state="normal")
         self.summary_text.insert(tk.END, summary)
@@ -177,18 +210,25 @@ class AnalyzerApp(tk.Tk):
         self.commits_text.insert(tk.END, "".join(commit_lines))
         self.commits_text.config(state="disabled")
 
-        raw_json = json.dumps(data, indent=2, ensure_ascii=False)
+        # raw_json = json.dumps(data, indent=2, ensure_ascii=False)
+        # self.raw_text.config(state="normal")
+        # self.raw_text.insert(tk.END, raw_json)
+        # self.raw_text.config(state="disabled")
+
         self.raw_text.config(state="normal")
-        self.raw_text.insert(tk.END, raw_json)
+        if data.get("ai_analysis"):
+            self.raw_text.insert(tk.END, "=== ANÁLISE DA IA ===\n\n" + data["ai_analysis"])
+        else:
+            self.raw_text.insert(tk.END, data.get("report", "(sem relatório estatístico)"))
         self.raw_text.config(state="disabled")
 
     def show_error(self, message, details=""):
-        self.status_label.config(text=message, foreground="#b00020")
+        self.status_label.config(text=message)
         messagebox.showerror("Erro", message + "\n\n" + details)
 
     def finish_analysis(self):
         self.start_button.config(state="normal")
-        self.status_label.config(text="Análise finalizada.", foreground="#116611")
+        self.status_label.config(text="Análise finalizada.")
 
 
 if __name__ == "__main__":

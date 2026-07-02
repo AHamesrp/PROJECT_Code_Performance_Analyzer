@@ -56,7 +56,7 @@ def analyze(url: str, detailed: bool = False):
     print(report)
 
     if detailed:
-        ai = AIAnalyzer(settings.ANTHROPIC_API_KEY)
+        ai = AIAnalyzer(settings.GROQ_API_KEY)
         ai_res = ai.analyze_performance_degradation(commits, repo_info)
         print("\n\n=== IA ANALYSIS ===\n")
         print(ai_res.get("analysis"))

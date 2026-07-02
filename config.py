@@ -5,13 +5,10 @@ import os
 class Settings(BaseSettings):
     """Configurações da aplicação"""
     
-    # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./performance.db")
-    
     # API Keys
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     GITHUB_TOKEN: str = os.getenv("GITHUB_TOKEN", "")
-    
+
     # Server
     DEBUG: bool = os.getenv("DEBUG", "True") == "True"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")

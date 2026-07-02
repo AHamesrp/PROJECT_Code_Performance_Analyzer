@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # Instâncias globais
 repo_manager = RepoManager()
 git_analyzer = GitAnalyzer()
-ai_analyzer = AIAnalyzer(settings.ANTHROPIC_API_KEY)
+ai_analyzer = AIAnalyzer(settings.GROQ_API_KEY)
 
 
 @router.post("/analyze", response_model=RepositoryAnalysisResponse)

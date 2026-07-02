@@ -4,8 +4,11 @@ from pathlib import Path
 import shutil
 import tempfile
 import re
+from urllib.parse import quote
 from git import Repo, GitCommandError
 from typing import Optional
+
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +44,31 @@ class RepoManager:
         """Salva somente o link do repositório e faz clone temporário para análise."""
         self.save_repo_link(url)
         repo_path = self._create_temp_clone_dir()
+        clone_url = self._build_authenticated_url(url)
 
         try:
             logger.info(f"Clonando {url} em {repo_path}")
-            repo = Repo.clone_from(url, to_path=str(repo_path))
+            repo = Repo.clone_from(clone_url, to_path=str(repo_path))
             return repo
         except GitCommandError as e:
             logger.error(f"Erro ao clonar {url}: {e}")
             self._remove_path(repo_path)
             raise
+
+    def _build_authenticated_url(self, url: str) -> str:
+        """Insere o token do GitHub na URL quando disponível e usando HTTPS."""
+        token = settings.GITHUB_TOKEN
+        if not token or not url.startswith("https://"):
+            return url
+
+        if "github.com" not in url:
+            return url
+
+        parsed_token = quote(token, safe='')
+        if url.startswith("https://github.com/"):
+            return url.replace("https://github.com/", f"https://{parsed_token}@github.com/")
+
+        return url
 
     def validate_git_url(self, url: str) -> bool:
         """Valida uma URL básica de git (.git ou github/gitlab ssh/http)"""
