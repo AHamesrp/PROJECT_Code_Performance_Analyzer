@@ -104,9 +104,16 @@ class GitAnalyzer:
     def get_repository_info(self, repo: Repo) -> Dict:
         """Extrai informações gerais do repositório"""
         try:
+            raw_url = repo.remotes.origin.url
+            # Remover credenciais embutidas (ex: https://token@github.com/owner/repo.git)
+            try:
+                sanitized_url = __import__("re").sub(r"https?://[^@]+@", "https://", raw_url)
+            except Exception:
+                sanitized_url = raw_url
+
             return {
-                "name": repo.remotes.origin.url.split("/")[-1].replace(".git", ""),
-                "url": repo.remotes.origin.url,
+                "name": sanitized_url.split("/")[-1].replace(".git", ""),
+                "url": sanitized_url,
                 "branches": len(repo.remotes.origin.refs),
                 "total_commits": len(list(repo.iter_commits())),
                 "languages": self.get_files_by_type(repo),
