@@ -204,7 +204,7 @@ class AnalyzerApp(tk.Tk):
             committed_date = commit.get('committed_date')
             committed_date_str = committed_date.strftime('%Y-%m-%d %H:%M:%S') if hasattr(committed_date, 'strftime') else str(committed_date)
             commit_lines.append(
-                f"{committed_date_str} | {commit.get('author')} | +{commit.get('lines_added')}/-{commit.get('lines_removed')} | {commit.get('message')}\n"
+                f"{committed_date_str} | {commit.get('author')} | {commit.get('message')}\n"
             )
         self.commits_text.config(state="normal")
         self.commits_text.insert(tk.END, "".join(commit_lines))
