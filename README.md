@@ -1,4 +1,4 @@
-# Code Performance Time Machine — Documentação Técnica
+# Code Performance Analyzer — Documentação Técnica
 
 > **Repositório:** `PROJECT_Code_Performance_Analyzer`
 > **Versão da API:** 1.0.0
